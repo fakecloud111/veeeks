@@ -1,0 +1,80 @@
+# Build Dependencies for VEX Project
+# This file lists dependencies between modules to facilitate the build
+
+## Recommended Build Order:
+1. utils/ (logger, config) - No external dependencies
+2. driver/ (idriver, driver_impl) - Depends on utils
+3. game/sdk/ (sdk.hpp, ue_object.hpp, uworld.hpp) - UE5 Base Structures
+4. game/ (igame_system, vgk_system) - Depends on driver, utils and sdk
+5. core/ (iapplication, application) - Depends on all other modules
+6. main.cpp - Depends on all modules
+
+## Dependencies by Module:
+
+### Utils
+- logger.hpp -> stdafx.h, windows.h
+- config.hpp -> stdafx.h, string, map
+
+### Driver
+- idriver.hpp -> stdafx.h, memory, string, cstdint
+- driver_impl.cpp -> idriver.hpp, logger.hpp, driver_data.h, wdk.h
+
+### Game SDK (UE5)
+- sdk.hpp -> cstdint, memory, string, vector
+- ue_object.hpp -> sdk.hpp, idriver.hpp, memory, string
+- uworld.hpp -> ue_object.hpp, vector, memory
+
+### Game
+- igame_system.hpp -> idriver.hpp
+- vgk_system.cpp -> igame_system.hpp, logger.hpp, idriver.hpp, offsets.hpp
+
+### Core
+- iapplication.hpp -> memory, string
+- application.cpp -> iapplication.hpp, logger.hpp, config.hpp, driver_impl.cpp, vgk_system.cpp
+
+### Main
+- main.cpp -> vex.hpp, all modules
+
+## System Files:
+- stdafx.h -> windows.h, tchar.h
+- driver_data.h -> wdk.h
+- wdk.h -> windows.h, ntdef.h
+
+## UE5 Modular System:
+
+### UObject (Base Class)
+- **Features**: Memory reading, templates for UE5 types, pointer validation
+- **Reuse**: All UE5 classes inherit from this base class
+- **Driver Integration**: Uses driver for all memory operations
+- **Templates**: read_member<T>, read_vector, read_rotator, read_transform, read_array<T>
+
+### UWorld (Specific Class)
+- **Inheritance**: UObject
+- **Features**: Level, actor, player, camera management
+- **Cache System**: Cache system for performance (100ms interval)
+- **Modular**: Can be easily extended for other classes
+
+### Design Pattern
+- **Template Method**: UObject::initialize() and UObject::cleanup() are virtual
+- **Factory Pattern**: create_world() for instantiation
+- **Cache Pattern**: Smart cache system for performance
+- **RAII**: Automatic resource management
+
+## UE5 Changes:
+- All math structures now use `double` instead of `float`
+- FVector, FRotator, FTransform, FMatrix, etc. are `double`
+- Math constants are `double`
+- Interpolation and math functions use `double`
+
+## Extensibility:
+- To create APlayerCameraManager: inherit from UObject
+- To create AActor: inherit from UObject
+- To create ULevel: inherit from UObject
+- All classes follow the same modular pattern
+
+## Notes:
+- Always do "Rebuild Solution" after header changes
+- Verify all includes are correct
+- Clear cache if necessary (Clean Solution)
+- UE5 uses double precision for better math accuracy
+- Modular system allows easy extension for new UE5 classes
